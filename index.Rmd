@@ -1,0 +1,61 @@
+---
+title: "MPD Stop and Frisk"
+author: "Brendan Freehart"
+date: "August 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+library(formattable)
+library(leaflet.extras)
+load('sptp.RData')
+load('stop_and_frisk_geocoded_2018.03.17.RData')
+```
+
+## Stop and Frisks in DC
+Stop and Frisk is  the practice of temporarily detaining, questioning, and at times searching civilians on the street without probable cause. MPD is required by the law to record Stop and Frisks but often does not. 
+
+## Who is Targeted by Stop and Frisk? - Two Views
+Stop and Frisk incidents that MPD _does_ report heavily targets young, black men. MPD has not released data on if stops lead to an arrest. Futhermore, we lack visibility into the reason for the stop or if those arrested were found guilty of a crime.
+
+
+```{r square chart, echo=FALSE}
+incid.square %>% 
+  ggplot(aes(x=row, y=col, fill=name)) + 
+  geom_tile(color = 'white', size = 0.5) + 
+  theme_void() + 
+  scale_fill_manual(
+    values = c("#E41A1C", "green", "#4DAF4A", "#984EA3", "#3288BD", "#FFFF33", "#A65628", "#F781BF", "#D53E4F", "#F46D43", "#FDAE61", "#999999", "#ABDDA4", "#66C2A5", "#FF7F00"),
+    breaks=c("Black Male 18-24", "Black Male Juvenile", "Black Male 25-30", "Unknown or Unreported", "Black Male 31-36", "Black Male 50+", "Black Male 37-42", "Black Male 43-49", "Black Male Unknown Age", "Black Female 18-24", "Unknown Race Male 18-24", "White Male 18-24", "Black Female Juvenile", "Black Female 25-30", "Other" )
+    ) + 
+  guides(fill=guide_legend(title = NULL)) +
+  ggtitle( 'Stop and Frisks', subtitle = 'by Reported Demographic Group, 2010-2016')
+```
+
+
+#### By the numbers
+
+```{r table, echo=FALSE}
+incid %>% 
+  mutate(
+    `Stop and Frisks` = color_bar("lightgreen")(`Stop and Frisks`)
+  ) %>% 
+  kable(escape = F) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Where is it happening?
+Drag and zoom in to see where Stop and Frisk is happening
+
+```{r Heatmap, echo=FALSE}
+sf.gc %>% 
+  filter(lat > 30, lon < -60) %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  setView(-77.03637, 38.89511, zoom = 13) %>% 
+  addWebGLHeatmap(lng=~lon, lat=~lat, size=180, opacity=0.55, alphaRange=0.1)
+```
+

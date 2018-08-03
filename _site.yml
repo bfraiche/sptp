@@ -1,0 +1,8 @@
+name: "MPD Stop and Frisk"
+output_dir: "."
+navbar:
+  title: "MPD Stop and Frisk"
+output:
+  html_document:
+    theme: flatly
+    css: style.css
