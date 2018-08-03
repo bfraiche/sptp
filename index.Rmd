@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(kableExtra)
 library(formattable)
@@ -16,13 +16,12 @@ load('stop_and_frisk_geocoded_2018.03.17.RData')
 ```
 
 ## Stop and Frisks in DC
-Stop and Frisk is  the practice of temporarily detaining, questioning, and at times searching civilians on the street without probable cause. MPD is required by the law to record Stop and Frisks but often does not. 
+Stop and Frisk is the practice of temporarily detaining, questioning, and searching civilians on the street without probable cause [^1]. MPD is required by the law to record Stop and Frisks [^2]. However, there is reason to believe that many incidents of Stop and Frisk have not been recorded. MPD's data collection is the focus of [an ongoing lawsuit against Mayor Bowser and Police Chief Peter Newsham](https://www.washingtoncitypaper.com/news/city-desk/blog/21004223/civil-rights-and-activist-groups-sue-bowser-over-stopandfrisk-data-collection). The lawsuit was brought by DC chapters of the ACLU, Black Lives Matter, and the Stop Police Terror Project.
 
-## Who is Targeted by Stop and Frisk? - Two Views
-Stop and Frisk incidents that MPD _does_ report heavily targets young, black men. MPD has not released data on if stops lead to an arrest. Futhermore, we lack visibility into the reason for the stop or if those arrested were found guilty of a crime.
+## Who is Targeted by Stop and Frisk? - Two Visualizations
+Reported Stop and Frisk incidents show a heavy bias towards young, black men. **93% of people stopped were non-white** [^3]. MPD has not released data on if stops lead to an arrest. Furthermore, we lack visibility into the reason for the stop or if those that were arrested were later found guilty of a crime.
 
-
-```{r square chart, echo=FALSE}
+```{r square chart}
 incid.square %>% 
   ggplot(aes(x=row, y=col, fill=name)) + 
   geom_tile(color = 'white', size = 0.5) + 
@@ -32,13 +31,13 @@ incid.square %>%
     breaks=c("Black Male 18-24", "Black Male Juvenile", "Black Male 25-30", "Unknown or Unreported", "Black Male 31-36", "Black Male 50+", "Black Male 37-42", "Black Male 43-49", "Black Male Unknown Age", "Black Female 18-24", "Unknown Race Male 18-24", "White Male 18-24", "Black Female Juvenile", "Black Female 25-30", "Other" )
     ) + 
   guides(fill=guide_legend(title = NULL)) +
-  ggtitle( 'Stop and Frisks', subtitle = 'by Reported Demographic Group, 2010-2016')
+  labs(title = 'Stop and Frisks', subtitle = 'by Reported Demographic Group, 2010-2016', caption = 'Each square represents 1% of all incidents')
 ```
 
 
 #### By the numbers
 
-```{r table, echo=FALSE}
+```{r table}
 incid %>% 
   mutate(
     `Stop and Frisks` = color_bar("lightgreen")(`Stop and Frisks`)
@@ -47,10 +46,10 @@ incid %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
-## Where is it happening?
-Drag and zoom in to see where Stop and Frisk is happening
+## Where is Stop and Frisk happening?
+Drag and zoom in to see where Stop and Frisks are happening in DC
 
-```{r Heatmap, echo=FALSE}
+```{r Heatmap}
 sf.gc %>% 
   filter(lat > 30, lon < -60) %>% 
   leaflet() %>% 
@@ -59,3 +58,8 @@ sf.gc %>%
   addWebGLHeatmap(lng=~lon, lat=~lat, size=180, opacity=0.55, alphaRange=0.1)
 ```
 
+_This site was built using RMarkdown_
+
+[^1]: Source: [Stop and Frisk Report 2013](https://web.archive.org/web/20170211080746/http://oag.state.ny.us/sites/default/files/pdfs/bureaus/civil_rights/stp_frsk.pdf)
+[^2]: Source: [Implementing the NEAR Act to reduce violence in D.C.](https://www.dcpolicycenter.org/publications/implementing-near-act-reduce-violence-d-c/)
+[^3]: ~10% of stops do not report race. The percentage of non-white does not include these instances. In other words, this statistic assumes that the racial makeup of those unknown or unreported stops is consistent with the overall trends.
