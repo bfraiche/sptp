@@ -8,11 +8,14 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+library(scales)
+library(plotly)
 library(tidyverse)
 library(kableExtra)
 library(formattable)
 library(leaflet.extras)
+library(lubridate)
 load('sptp.RData')
 load('stop_and_frisk_geocoded_2018.03.17.RData')
 ```
@@ -20,10 +23,11 @@ load('stop_and_frisk_geocoded_2018.03.17.RData')
 ## Stop and Frisks in DC
 Stop and Frisk is the practice of temporarily detaining, questioning, and searching civilians on the street without probable cause [^1]. MPD is required by the law to record Stop and Frisks [^2]. However, there is reason to believe that many incidents of Stop and Frisk have not been recorded. MPD's data collection is the focus of [an ongoing lawsuit against Mayor Bowser and Police Chief Peter Newsham](https://www.washingtoncitypaper.com/news/city-desk/blog/21004223/civil-rights-and-activist-groups-sue-bowser-over-stopandfrisk-data-collection). The lawsuit was brought by DC chapters of the ACLU, Black Lives Matter, and the Stop Police Terror Project.
 
-## Who is Targeted by Stop and Frisk? - Two Visualizations
+***
+## Who is Targeted by Stop and Frisk?
 Reported Stop and Frisk incidents show a heavy bias towards young, black men. **93% of people stopped were non-white** [^3]. MPD has not released data on if stops lead to an arrest. Furthermore, we lack visibility into the reason for the stop or if those that were arrested were later found guilty of a crime.
 
-```{r square chart, , fig.cap='How to read:'}
+```{r demog square chart}
 incid.square %>% 
   ggplot(aes(x=row, y=col, fill=name)) + 
   geom_tile(color = 'white', size = 0.5) + 
@@ -39,8 +43,9 @@ incid.square %>%
 
 #### By the numbers
 
-```{r table}
+```{r demog table}
 incid %>% 
+  arrange(if_else(Group=='Other', 1, 0), -`Stop and Frisks`) %>% 
   mutate(
     `Stop and Frisks` = color_bar("lightgreen")(`Stop and Frisks`)
   ) %>% 
@@ -48,10 +53,11 @@ incid %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
+***
 ## Where is Stop and Frisk happening?
 Drag and zoom in to see where Stop and Frisks are happening in DC
 
-```{r Heatmap}
+```{r heatmap}
 sf.gc %>% 
   filter(lat > 30, lon < -60) %>% 
   leaflet() %>% 
@@ -60,7 +66,50 @@ sf.gc %>%
   addWebGLHeatmap(lng=~lon, lat=~lat, size=180, opacity=0.55, alphaRange=0.1)
 ```
 
-_This site was built using RMarkdown_
+\
+
+```{r timeseries by ward}
+by.ward <- by.ward %>% 
+  ggplot(aes(Month, Stops, fill=Ward)) +
+  geom_area(position = 'stack') + 
+  theme_minimal() +
+  scale_x_datetime(labels = date_format("%b '%y"), breaks = date_breaks("6 months")) +
+  theme(axis.text.x = element_text(angle=60, hjust=1), axis.title.x = element_blank(), plot.title = element_text(size = 24)) + 
+  labs(title = 'Stop and Frisks by Ward', y = 'Stop and Frisks')
+
+ggplotly(by.ward) %>% 
+  add_annotations(
+    yref="paper", 
+    xref="paper", 
+    y=1.15, 
+    x=0, 
+    text="Stop and Frisks by Ward", 
+    showarrow=F, 
+    font=list(size=24)
+  ) %>% 
+  layout(title=FALSE)
+```
+
+***
+## Trends and Comparison
+This chart compares Stop and Frisk incidents to the year prior. The Year-over-Year method helps analyze trends by mitigating seasonality.
+
+The chart is interactive. Click/Drag to zoom-in on a specific section of interest.
+
+```{r yoy by ward}
+yoy.p <- yoy %>% 
+  ggplot(aes(Month, YoY)) +
+  facet_grid(Ward ~ ., scales = "free_y") + 
+  geom_hline(yintercept = 0, linetype = "longdash") +
+  geom_line(color="#2171B5") +  
+  theme_bw() + 
+  scale_y_continuous(labels = scales::percent) + 
+  scale_x_datetime(labels = date_format("%b '%y"), breaks = date_breaks("6 months")) +
+  theme(axis.text.x = element_text(angle=60, hjust=1), axis.title = element_blank())
+
+ggplotly(yoy.p, height = 1000)
+```
+
 
 [^1]: Source: [Stop and Frisk Report 2013](https://web.archive.org/web/20170211080746/http://oag.state.ny.us/sites/default/files/pdfs/bureaus/civil_rights/stp_frsk.pdf)
 [^2]: Source: [Implementing the NEAR Act to reduce violence in D.C.](https://www.dcpolicycenter.org/publications/implementing-near-act-reduce-violence-d-c/)

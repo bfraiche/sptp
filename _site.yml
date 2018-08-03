@@ -6,3 +6,5 @@ output:
   html_document:
     theme: flatly
     css: style.css
+    include:
+      after_body: footer.html
