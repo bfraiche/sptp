@@ -2,7 +2,9 @@
 title: "MPD Stop and Frisk"
 author: "Brendan Freehart"
 date: "August 2, 2018"
-output: html_document
+output: 
+  html_document:
+    fig_caption: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +23,7 @@ Stop and Frisk is the practice of temporarily detaining, questioning, and search
 ## Who is Targeted by Stop and Frisk? - Two Visualizations
 Reported Stop and Frisk incidents show a heavy bias towards young, black men. **93% of people stopped were non-white** [^3]. MPD has not released data on if stops lead to an arrest. Furthermore, we lack visibility into the reason for the stop or if those that were arrested were later found guilty of a crime.
 
-```{r square chart}
+```{r square chart, , fig.cap='How to read:'}
 incid.square %>% 
   ggplot(aes(x=row, y=col, fill=name)) + 
   geom_tile(color = 'white', size = 0.5) + 
